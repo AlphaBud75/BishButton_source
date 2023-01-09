@@ -1,0 +1,29 @@
+body {
+    text-align: center;
+    white-space: pre;
+
+    background-image: url("../img/bg_natural_sky.jpg");
+    background-size: cover;
+
+}
+
+.rd {
+    font-size: 40px;
+    font-family: 'Permanent Marker', cursive;
+
+    width: fit-content;
+
+    text-align: center;
+
+    color: rgb(166, 111, 237);
+    -webkit-text-stroke: 2px black;
+}
+
+#increment-btn {
+    background-color: transparent;
+    border: 0;
+}
+
+p{
+    color: transparent;
+}

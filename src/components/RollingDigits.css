@@ -1,0 +1,15 @@
+.DigitRoll__Cell {
+    /* margin: 0 5px; */
+    margin: 0 3px;
+    /* border: 1px solid brown; */
+    background: transparent;
+
+}
+
+.DigitRoll {
+    border: none;
+}
+
+.DigitRoll__Divider {
+    width: 5px;
+}
