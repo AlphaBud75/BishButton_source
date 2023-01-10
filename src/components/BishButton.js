@@ -4,9 +4,28 @@ import './BishButton.css';
 
 import 'bootstrap/dist/css/bootstrap.min.css';
 
+let quite_flag = true;
+Audio.prototype.myPlay = function () {
+    console.log('quite_flag: ', quite_flag, 'myplay()', this.duration);
+    if (quite_flag) {
+        quite_flag = false;
+        setTimeout(
+            () => {
+                quite_flag = true;
+                console.log(this.duration);
+            },
+            this.duration * 1100
+        )
+        this.play();
+    }
+};
+
 export default function BishButton() {
 
     const endpoint = 'https://1c104v13x0.execute-api.us-east-1.amazonaws.com/v1/counter';
+    // const endpoint = 'https://1c104v13x0.execute-api.us-east-1.amazonaws.com/v1/counterkjygkjyg';
+
+    const bish_short = new Audio(require('../wav/BitchA.wav')), bish_long = new Audio(require('../wav/BitchB.wav'));
     const getFrequency = 5000,
         TimeoutcountDownTime = 5,
         // timeoutTime = 60000,
@@ -16,12 +35,16 @@ export default function BishButton() {
         [flag, setFlag] = useState(true),
         [TimeoutcountDown, setTimeoutCountDown] = useState(TimeoutcountDownTime),    // new timeout time in second
         last_onMouseLeave_incrementation = useRef(0),
-        mouse_click_time = useRef(new Date().getSeconds());
+        mouse_click_time = useRef(0),
+        last_time_bish_long = useRef(0),
+        [playingLongBish, setPlayingLongBish] = useState(false);
+    ;
     let intervalUpdateId;
 
     // Update once when mount
     useEffect(
         () => {
+            last_time_bish_long.current = Date.now();
             updater(endpoint, 'GET', null)
                 .then((data) => {
                     console.log('initial-get/fetched. counter: ', data);
@@ -40,6 +63,7 @@ export default function BishButton() {
             intervalUpdateId = setInterval(
                 () => {
                     if (flag && TimeoutcountDown > 0) {
+                        setPlayingLongBish(false);
                         console.log('ivuid', intervalUpdateId, ' Timeoutcountdown: ', TimeoutcountDown, ' - try to update on ', new Date().toLocaleString());
                         setTimeoutCountDown(t => t - 1);
                         updater(endpoint, 'GET', null)
@@ -99,7 +123,7 @@ export default function BishButton() {
         >
             {/* increment */}
             <img src={
-                new Date().getSeconds() === mouse_click_time.current
+                playingLongBish
                     ?
                     require("../img/Angry.png")
                     :
@@ -109,12 +133,16 @@ export default function BishButton() {
         <h3> {!flag ? 'Timedout. keep bishing to resume.' : null} </h3>
         <br />
         <p>
+            quite_flag = {quite_flag},
+            <br />
             getFrequency = {getFrequency}
-            <br />
             {/* timeoutTime = {timeoutTime}, */}
-            , flag = {String(flag)}, TimeoutcountDown = {TimeoutcountDown}
             <br />
+            TimeoutcountDown = {TimeoutcountDown}
+            <br />
+            , flag = {String(flag)},
             {/* , intervalUpdateId = {String(intervalUpdateId)}, timeoutID = {String(timeoutID)} */}
+            <br />
             , last_onMouseLeave_incrementation.current = {last_onMouseLeave_incrementation.current}
             <br />
             , mouse_click_time.current = {mouse_click_time.current};
@@ -133,13 +161,37 @@ export default function BishButton() {
         last_onMouseLeave_incrementation.current = incrementation_count;
     }
 
+
+
     function onClickHandler() {
-        mouse_click_time.current = new Date().getSeconds();
-        setIncrementation(x => x + 1);
-        console.log('onClickHandler() : click_count: ', incrementation_count);
-        setFlag(true);
-        // clearTimeout(timeoutID);
-        setTimeoutCountDown(TimeoutcountDownTime);
+        console.log(Date.now() - last_time_bish_long.current);
+        // play short bish
+        if (Math.random() > 0.05 && quite_flag) {
+            try {
+                bish_short.play();
+            } catch {
+                alert('you broke the site(i mean my code is weak). please refresh')
+            }
+
+            mouse_click_time.current = Date.now()
+            setIncrementation(x => x + 1);
+            console.log('onClickHandler() : click_count: ', incrementation_count);
+            setFlag(true);
+            setTimeoutCountDown(TimeoutcountDownTime);
+        }
+        else {
+            //play long bish
+            if (
+                // quite_flag
+                // &&
+                (Date.now() - last_time_bish_long.current) > 5 * 1000
+            ) {
+                bish_long.myPlay();
+                last_time_bish_long.current = Date.now();
+                setPlayingLongBish(true);
+            }
+        }
+
     };
 
     async function updater(url, method, body) {
