@@ -2,7 +2,12 @@ import { useState, useEffect, useRef } from "react";
 import RollingDigits from "./RollingDigits";
 import './BishButton.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
+import useSound from 'use-sound';
 
+import bish_basic from '../wav/bish_basic.wav';
+import bish_haha from '../wav/bish_haha.wav';
+import bish_ogbg from '../wav/bish_ogbg.mp3';
+import bish_vg from '../wav/bish_vg.mp3';
 
 
 export default function BishButton_v2() {
@@ -15,14 +20,20 @@ export default function BishButton_v2() {
 
         getFrequency = 3 * 1000,     // frequency of getting latest counter
         postFrequency = 5 * 1000,     // frequency of posting increment_tobe_posted
-        [TimeoutcountDown, setTimeoutCountDown] = useState(TIMEOUT_IN)    // actual TIMEOUT TIME = x * 
+        [TimeoutcountDown, setTimeoutCountDown] = useState(TIMEOUT_IN),  // actual TIMEOUT TIME = x * 
+
+        [play_bish_basic] = useSound(bish_basic),
+        [play_bish_haha] = useSound(bish_haha),
+        [play_bish_ogbg] = useSound(bish_ogbg),
+        [play_bish_vg] = useSound(bish_vg);
+
 
     // Update once when mount
     useEffect(
         () => {
             updater(endpoint, 'GET', null)
                 .then((data) => {
-                    console.log('initial-get/fetched. counter: ', data);
+                    console.log('\t\t\t\t\t\t\tinitial-get/fetched. counter: ', data);
                     setCounter_display(data);
                 }).catch((error) => {
                     console.error(error);
@@ -34,7 +45,7 @@ export default function BishButton_v2() {
     // if there's something to post, keep posting
     useEffect(
         () => {
-            console.log('theres something to post, increment_tobe_posted:', increment_tobe_posted);
+            console.log('****theres something to post, increment_tobe_posted:', increment_tobe_posted);
             let intervalUpdateId = setInterval(
                 () => {
 
@@ -44,7 +55,7 @@ export default function BishButton_v2() {
                             endpoint, 'POST', { increment: increment_tobe_posted }      // posting increment_tobe_posted in {} 
                         )
                             .then((data) => {
-                                console.log('\t\t\t\t\tposted increment_tobe_posted : ', increment_tobe_posted);
+                                console.log('\t\t\t\t\t\t\tposted increment_tobe_posted : ', increment_tobe_posted);
                                 setIncrement_tobe_posted(0);
                             })
                             .catch(error => console.error(error));
@@ -65,27 +76,27 @@ export default function BishButton_v2() {
         () => {
             let intervalUpdateId = setInterval(
                 () => {
-                    console.log('TimeoutcountDown: ', TimeoutcountDown);
+                    console.log('TimeoutcountDown: ', TimeoutcountDown, (TimeoutcountDown < 0 ? ' but timeout\'d' : ''));
+                    setTimeoutCountDown(t => t - 1);    // countDown t - 1
+
                     if (TimeoutcountDown > 0) {
-                        setTimeoutCountDown(t => t - 1);    // countDown t - 1
 
                         updater(endpoint, 'GET', null)
                             .then((data) => {
                                 if (data > counter_display) {
-                                    console.log('\t\t\t\t\tre-get/fetched. counter: (data > counter_display): ', data);
+                                    console.log('\t\t\t\t\t\t\tre-get/fetched. counter: (data > counter_display): ', data);
                                     setCounter_display(data);
                                 } else {
-                                    console.log('\t\t\t\t\tre-get/fetched. counter: (data == counter_display), data: ', data);
+                                    console.log('\t\t\t\t\t\t\tre-get/fetched. counter: (data == counter_display), data: ', data);
                                 }
                             })
                             .catch(error => console.error(error));
 
                     }
-                    else if (TimeoutcountDown <= 0) {       // timeout 以后 试着 post 一下
+                    else if (TimeoutcountDown === 0) {       // timeout 以后 试着 post 一下
 
-                        console.log('timed out');
-
-                        increment_tobe_posted ? updater(       // post if increment_tobe_posted != 0
+                        // post if increment_tobe_posted != 0
+                        increment_tobe_posted && updater(
                             endpoint, 'POST', { increment: increment_tobe_posted }      // posting increment_tobe_posted in {} 
                         )
                             .then((data) => {
@@ -93,8 +104,6 @@ export default function BishButton_v2() {
                                 setIncrement_tobe_posted(0);
                             })
                             .catch(error => console.error(error))
-                            :
-                            console.log('nothing to post');
 
                     }
                 }, getFrequency
@@ -105,8 +114,6 @@ export default function BishButton_v2() {
         }
         , [TimeoutcountDown]
     );
-
-
 
     /////////////////////////////////////////////////
     return <>
@@ -123,19 +130,32 @@ export default function BishButton_v2() {
 
         <button id="increment-btn"
             onClick={onClickHandler}
+            onMouseLeave={onMouseLeaveHandler}
         >
-            increment
+            <img src={
+                require("../img/Normal.png")
+                // require("../img/Angry.png")
+            }></img>
         </button>
+        <h3> {TimeoutcountDown < 0 ? 'Timedout. keep bishing to resume.' : null} </h3>
 
-        {/* <h3> {!flag ? 'Timedout. keep bishing to resume.' : null} </h3> */}
 
         <br />
 
     </>;
     /////////////////////////////////////////////////////
 
-
-
+    function onMouseLeaveHandler(event) {
+        increment_tobe_posted && updater(
+            endpoint, 'POST', { increment: increment_tobe_posted }
+        )
+            .then((data) => {
+                console.log('onmouseleave():\t\t\t\t\t\t\t posted increment_tobe_posted : ', increment_tobe_posted);
+                setIncrement_tobe_posted(0);
+            }).catch((error) => {
+                console.error(error);
+            });
+    }
 
     function onClickHandler() {
         // console.log(Date.now() - last_time_bish_long.current);
@@ -148,6 +168,18 @@ export default function BishButton_v2() {
             'onClickHandler() : clicked  TimeoutCountDown recharged',
             '\n\tincrement_display: ', increment_display,
             '\n\tincrement_tobe_posted:', increment_tobe_posted);
+
+        if (Math.random() > 0.75) {
+            play_bish_basic();
+        } else if (Math.random() > 0.5) {
+            play_bish_haha();
+        } else if (Math.random() > 0.25) {
+            play_bish_ogbg()
+        } else {
+            play_bish_vg()
+        }
+
+
     };
 
 

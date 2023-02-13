@@ -25,7 +25,7 @@ export default function BishButton() {
     const endpoint = 'https://1c104v13x0.execute-api.us-east-1.amazonaws.com/v1/counter';
     // const endpoint = 'https://1c104v13x0.execute-api.us-east-1.amazonaws.com/v1/counterkjygkjyg';
 
-    const bish_short = new Audio(require('../wav/BitchA.wav')), bish_long = new Audio(require('../wav/BitchB.wav'));
+    const bish_short = new Audio(require('../wav/bish_basic.wav')), bish_long = new Audio(require('../wav/bish_haha.wav'));
     const getFrequency = 5000,
         TimeoutcountDownTime = 5,
         // timeoutTime = 60000,
