@@ -1,11 +1,11 @@
 import './App.css';
-import BishButton from './components/BishButton';
+import BishButton_v1 from './components/BishButton_v1';
 import BishButton_v2 from './components/BishButton_v2';
 
 function App() {
   return (
     <div className="App">
-      {/* <BishButton></BishButton> */}
+      {/* <BishButton_v1></BishButton_v1> */}
       <BishButton_v2></BishButton_v2>
     </div>
   );
